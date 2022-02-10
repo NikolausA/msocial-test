@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\BookRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use \Backpack\CRUD\app\Http\Controllers\Operations\FetchOperation;
 
 /**
  * Class BookCrudController
@@ -18,6 +19,7 @@ class BookCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\InlineCreateOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -26,7 +28,7 @@ class BookCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Book::class);
+        CRUD::setModel('App\Models\Book');
         CRUD::setRoute(config('backpack.base.route_prefix') . '/book');
         CRUD::setEntityNameStrings('book', 'books');
     }
@@ -40,6 +42,7 @@ class BookCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name');
+        // CRUD::column('authors')->type('relationship');
         CRUD::addColumn([
             'name' => 'authors',
             'type' => 'relationship',
@@ -68,14 +71,12 @@ class BookCrudController extends CrudController
 
         CRUD::field('name');
         CRUD::addField([
-            'type' => 'relationship',
+            'type' => "relationship",
             'name' => 'authors',
             'ajax' => true,
-            'inline_create' => [ 'entity' => 'author' ],
-            // 'entity' => 'authors',
-            // 'attribute' => 'name',
-            // 'pivot' => true, 
+            'inline_create' => [ 'entity' => 'author' ]
         ]);
+        
         CRUD::field('price');
 
         /**
@@ -94,5 +95,10 @@ class BookCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    protected function fetchAuthor() 
+    {
+        return $this->fetch(\App\Models\Author::class);
     }
 }

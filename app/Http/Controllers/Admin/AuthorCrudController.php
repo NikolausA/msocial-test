@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\AuthorRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use \Backpack\CRUD\app\Http\Controllers\Operations\InlineCreateOperation;
+use \Backpack\CRUD\app\Http\Controllers\Operations\FetchOperation;
 
 /**
  * Class AuthorCrudController
@@ -15,10 +17,10 @@ class AuthorCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\InlineCreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\InlineCreateOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -27,7 +29,7 @@ class AuthorCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Author::class);
+        CRUD::setModel('App\Models\Author');
         CRUD::setRoute(config('backpack.base.route_prefix') . '/author');
         CRUD::setEntityNameStrings('author', 'authors');
     }
@@ -41,6 +43,13 @@ class AuthorCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name');
+        CRUD::addColumn([
+            'name' => 'books',
+            'type' => 'relationship',
+            'entity' => 'books',
+            'attribute' => 'name',
+
+        ]);
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
@@ -60,6 +69,12 @@ class AuthorCrudController extends CrudController
         CRUD::setValidation(AuthorRequest::class);
 
         CRUD::field('name');
+        CRUD::addField([
+            'type' => "relationship",
+            'name' => 'books',
+            'ajax' => true,
+            'inline_create' => [ 'entity' => 'book' ]
+        ]);
 
         /**
          * Fields can be defined using the fluent syntax or array syntax:
@@ -77,5 +92,10 @@ class AuthorCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    protected function fetchBook() 
+    {
+        return $this->fetch(\App\Models\Book::class);
     }
 }
